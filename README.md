@@ -1,6 +1,5 @@
 # Kinematics-Aware Autonomous Navigation
 
-**MSc AI & Robotics Application Project — Sapienza University of Rome**
 
 A **production-ready** point-to-point navigation system for differential drive robots, demonstrating mastery of robotics fundamentals through a complete, tested implementation.
 
