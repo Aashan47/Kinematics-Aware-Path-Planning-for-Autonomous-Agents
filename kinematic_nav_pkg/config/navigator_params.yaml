@@ -1,0 +1,70 @@
+# =============================================================================
+# Production Navigator Parameters Configuration
+# =============================================================================
+#
+# This YAML configures all aspects of the production-ready navigator:
+# - PID controller gains
+# - Robot physical parameters
+# - Obstacle avoidance settings
+# - Velocity smoothing (acceleration limits)
+# - Recovery behavior settings
+#
+# =============================================================================
+
+point_to_point_navigator:
+  ros__parameters:
+    # ---------------------------------------------------------
+    # Distance PID Controller
+    # Controls linear velocity based on distance to goal
+    # ---------------------------------------------------------
+    distance_kp: 1.0      # Proportional gain [m/s per m error]
+    distance_ki: 0.01     # Integral gain [m/s per m*s error]
+    distance_kd: 0.1      # Derivative gain [m/s per m/s error]
+
+    # ---------------------------------------------------------
+    # Heading PID Controller
+    # Controls angular velocity based on heading error
+    # ---------------------------------------------------------
+    heading_kp: 2.0       # Proportional gain [rad/s per rad error]
+    heading_ki: 0.0       # Integral gain (usually not needed)
+    heading_kd: 0.2       # Derivative gain [rad/s per rad/s error]
+
+    # ---------------------------------------------------------
+    # Goal Tolerances
+    # ---------------------------------------------------------
+    distance_tolerance: 0.05    # Position tolerance [m]
+    angle_tolerance: 0.05       # Orientation tolerance [rad] (~3 degrees)
+
+    # ---------------------------------------------------------
+    # Robot Physical Parameters (TurtleBot3 Burger)
+    # ---------------------------------------------------------
+    wheel_radius: 0.033         # [m]
+    wheel_separation: 0.16      # [m]
+    max_linear_vel: 0.22        # [m/s]
+    max_angular_vel: 2.84       # [rad/s]
+
+    # ---------------------------------------------------------
+    # Velocity Smoothing (Acceleration Limits)
+    # Prevents jerky motion and motor stress
+    # ---------------------------------------------------------
+    max_linear_accel: 0.5       # [m/s^2]
+    max_angular_accel: 1.5      # [rad/s^2]
+
+    # ---------------------------------------------------------
+    # Obstacle Avoidance (LiDAR-based)
+    # ---------------------------------------------------------
+    emergency_stop_distance: 0.15   # Immediate stop if closer [m]
+    slow_down_distance: 0.5         # Start reducing speed [m]
+    detection_distance: 1.0         # Detection range [m]
+
+    # ---------------------------------------------------------
+    # Recovery Behaviors
+    # ---------------------------------------------------------
+    goal_timeout_sec: 60.0      # Max time to reach goal [s]
+    stuck_timeout_sec: 5.0      # Time without progress = stuck [s]
+    max_recovery_attempts: 3    # Abort after this many failures
+
+    # ---------------------------------------------------------
+    # Control Loop
+    # ---------------------------------------------------------
+    control_rate: 50.0          # [Hz]

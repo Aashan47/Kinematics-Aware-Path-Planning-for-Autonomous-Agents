@@ -1,0 +1,145 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<!--
+  package.xml - ROS2 Package Manifest
+
+  This manifest serves multiple purposes:
+  1. Dependency Declaration: Lists all packages required to build and run
+  2. Package Metadata: Name, version, description, maintainers
+  3. Build System Selection: Specifies ament_cmake as the build type
+  4. Export Configuration: Defines what this package provides to others
+
+  Dependency Types Explained:
+  ==========================================================================
+
+  <buildtool_depend>: Tools needed to BUILD the package
+    - ament_cmake: The ROS2 CMake build system
+    - Required at build time only, not at runtime
+
+  <build_depend>: Packages needed during COMPILATION
+    - Header files, static libraries
+    - Resolved by CMake's find_package()
+
+  <exec_depend>: Packages needed at RUNTIME
+    - Dynamic libraries, Python modules
+    - Resolved by the ROS2 runtime loader
+
+  <depend>: Shorthand for build_depend + exec_depend
+    - Use when a package is needed for both
+    - Most common for ROS2 message/service packages
+
+  <test_depend>: Packages needed only for TESTING
+    - Test frameworks, mock libraries
+    - Not installed in production deployments
+
+  Memory/Performance Considerations:
+  ==========================================================================
+
+  Unlike MATLAB scripts that load entire toolboxes into memory:
+  - ROS2 packages are loaded on-demand via dynamic linking
+  - Only the symbols actually used are resolved at runtime
+  - This reduces memory footprint significantly
+
+  The dependency graph is resolved by rosdep:
+  - System packages (apt) are installed automatically
+  - ROS packages are built in dependency order
+  - Circular dependencies are detected and rejected
+
+-->
+<package format="3">
+  <!-- Package identification -->
+  <name>kinematic_nav_pkg</name>
+  <version>1.0.0</version>
+  <description>
+    Kinematics-aware autonomous navigation for differential drive robots.
+    Implements PID control for point-to-point navigation with proper
+    treatment of nonholonomic constraints. Designed to demonstrate
+    competency in robotics fundamentals for Sapienza MSc AI &amp; Robotics.
+  </description>
+
+  <!-- Maintainer information (required for distribution) -->
+  <maintainer email="applicant@example.com">MSc Applicant</maintainer>
+
+  <!-- License: BSD-3-Clause is standard for ROS packages -->
+  <license>BSD-3-Clause</license>
+
+  <!-- Original author -->
+  <author email="applicant@example.com">MSc Applicant</author>
+
+  <!-- URLs for documentation and source -->
+  <url type="repository">https://github.com/applicant/kinematic_nav_pkg</url>
+  <url type="documentation">https://github.com/applicant/kinematic_nav_pkg#readme</url>
+
+  <!--
+    Build Tool Dependencies
+    =======================
+    ament_cmake: Core ROS2 build system
+    - Provides CMake macros: ament_package(), ament_target_dependencies()
+    - Handles package discovery and installation
+    - Generates environment setup scripts
+  -->
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <!--
+    Core ROS2 Dependencies
+    ======================
+    Using <depend> for packages needed at both build and runtime.
+  -->
+
+  <!-- rclcpp: ROS2 C++ client library -->
+  <!-- Provides: Node, Publisher, Subscriber, Timer, Parameter handling -->
+  <!-- Memory: Uses shared_ptr for thread-safe object sharing -->
+  <depend>rclcpp</depend>
+
+  <!-- geometry_msgs: Standard geometric message types -->
+  <!-- Provides: Twist (velocity), Pose, Transform, Point, Quaternion -->
+  <!-- Used for: /cmd_vel publishing, goal pose representation -->
+  <depend>geometry_msgs</depend>
+
+  <!-- nav_msgs: Navigation message types -->
+  <!-- Provides: Odometry, Path, OccupancyGrid -->
+  <!-- Used for: /odom subscription (pose + twist feedback) -->
+  <depend>nav_msgs</depend>
+
+  <!-- sensor_msgs: Sensor data types -->
+  <!-- Provides: LaserScan, Imu, Image, PointCloud2 -->
+  <!-- Used for: Future sensor integration (LiDAR obstacle detection) -->
+  <depend>sensor_msgs</depend>
+
+  <!--
+    Transform (tf2) Dependencies
+    ============================
+    tf2 is ROS2's transform library for managing coordinate frames.
+    Essential for robotics: robot_frame -> odom_frame -> map_frame
+  -->
+
+  <!-- tf2: Core transform library (quaternions, transforms) -->
+  <depend>tf2</depend>
+
+  <!-- tf2_ros: ROS2 bindings (TransformBroadcaster, Buffer, Listener) -->
+  <depend>tf2_ros</depend>
+
+  <!-- tf2_geometry_msgs: Conversions between geometry_msgs and tf2 types -->
+  <!-- Critical for: Converting Quaternion to Euler (RPY) angles -->
+  <depend>tf2_geometry_msgs</depend>
+
+  <!--
+    Test Dependencies
+    =================
+    Only needed when running tests (colcon test)
+  -->
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <!--
+    Export Section
+    ==============
+    Declares what this package provides to other packages.
+  -->
+  <export>
+    <!-- Specify the build type -->
+    <build_type>ament_cmake</build_type>
+  </export>
+
+</package>

@@ -1,0 +1,169 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+
+\title{Kinematics-Aware Autonomous Navigation:\\Mathematical Foundations for Differential Drive Robots}
+\author{MSc AI \& Robotics Application - Sapienza University of Rome}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{State-Space Representation}
+
+The configuration of a differential drive robot in the 2D plane is described by the state vector:
+\begin{equation}
+\mathbf{q} = \begin{bmatrix} x \\ y \\ \theta \end{bmatrix} \in SE(2)
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $x, y \in \mathbb{R}$ represent the position of the robot's center (midpoint between wheels) in the world frame
+    \item $\theta \in (-\pi, \pi]$ is the orientation angle measured from the positive x-axis
+\end{itemize}
+
+The robot operates under \textbf{nonholonomic constraints}, meaning it cannot move instantaneously in the lateral direction. This constraint is expressed as:
+\begin{equation}
+\dot{x}\sin\theta - \dot{y}\cos\theta = 0
+\end{equation}
+
+\section{Forward Kinematics}
+
+\subsection{From Wheel Velocities to Body Velocities}
+
+Given the angular velocities of the left ($\omega_L$) and right ($\omega_R$) wheels, and wheel parameters:
+\begin{itemize}
+    \item $r$ = wheel radius [m]
+    \item $L$ = wheelbase (distance between wheel centers) [m]
+\end{itemize}
+
+The linear and angular velocities of the robot body are:
+
+\begin{equation}
+\boxed{v = \frac{r}{2}(\omega_R + \omega_L)}
+\end{equation}
+
+\begin{equation}
+\boxed{\omega = \frac{r}{L}(\omega_R - \omega_L)}
+\end{equation}
+
+In matrix form:
+\begin{equation}
+\begin{bmatrix} v \\ \omega \end{bmatrix} = \frac{r}{2} \begin{bmatrix} 1 & 1 \\ \frac{2}{L} & -\frac{2}{L} \end{bmatrix} \begin{bmatrix} \omega_R \\ \omega_L \end{bmatrix}
+\end{equation}
+
+\subsection{Kinematic Model (State Evolution)}
+
+The time evolution of the robot state follows the \textbf{unicycle model}:
+
+\begin{equation}
+\boxed{\dot{\mathbf{q}} = \begin{bmatrix} \dot{x} \\ \dot{y} \\ \dot{\theta} \end{bmatrix} = \begin{bmatrix} \cos\theta & 0 \\ \sin\theta & 0 \\ 0 & 1 \end{bmatrix} \begin{bmatrix} v \\ \omega \end{bmatrix}}
+\end{equation}
+
+Expanded form:
+\begin{align}
+\dot{x} &= v \cos\theta \\
+\dot{y} &= v \sin\theta \\
+\dot{\theta} &= \omega
+\end{align}
+
+\subsection{Discrete-Time Integration (Euler Method)}
+
+For implementation with sampling period $\Delta t$:
+
+\begin{equation}
+\begin{bmatrix} x_{k+1} \\ y_{k+1} \\ \theta_{k+1} \end{bmatrix} = \begin{bmatrix} x_k \\ y_k \\ \theta_k \end{bmatrix} + \begin{bmatrix} v_k \cos\theta_k \\ v_k \sin\theta_k \\ \omega_k \end{bmatrix} \Delta t
+\end{equation}
+
+For improved accuracy (exact integration assuming constant $v$, $\omega$ over $\Delta t$):
+
+\begin{equation}
+\begin{cases}
+x_{k+1} = x_k + \frac{v_k}{\omega_k}\left(\sin(\theta_k + \omega_k \Delta t) - \sin\theta_k\right) & \text{if } \omega_k \neq 0 \\
+y_{k+1} = y_k + \frac{v_k}{\omega_k}\left(\cos\theta_k - \cos(\theta_k + \omega_k \Delta t)\right) & \text{if } \omega_k \neq 0 \\
+\theta_{k+1} = \theta_k + \omega_k \Delta t
+\end{cases}
+\end{equation}
+
+\section{Inverse Kinematics}
+
+\subsection{From Body Velocities to Wheel Velocities}
+
+Given desired linear velocity $v$ and angular velocity $\omega$:
+
+\begin{equation}
+\boxed{\omega_R = \frac{1}{r}\left(v + \frac{L}{2}\omega\right)}
+\end{equation}
+
+\begin{equation}
+\boxed{\omega_L = \frac{1}{r}\left(v - \frac{L}{2}\omega\right)}
+\end{equation}
+
+In matrix form:
+\begin{equation}
+\begin{bmatrix} \omega_R \\ \omega_L \end{bmatrix} = \frac{1}{r} \begin{bmatrix} 1 & \frac{L}{2} \\ 1 & -\frac{L}{2} \end{bmatrix} \begin{bmatrix} v \\ \omega \end{bmatrix}
+\end{equation}
+
+\section{Control-Oriented Formulation}
+
+\subsection{Linear Transfer Function Perspective}
+
+For small perturbations around a nominal trajectory, the system can be linearized. Consider the error dynamics for point-to-point navigation:
+
+Let the position error be $e = \sqrt{(x_g - x)^2 + (y_g - y)^2}$ and heading error $\alpha = \text{atan2}(y_g - y, x_g - x) - \theta$.
+
+The linearized dynamics in Laplace domain for the heading control loop:
+\begin{equation}
+\frac{\Theta(s)}{W(s)} = \frac{1}{s}
+\end{equation}
+
+where $\Theta(s) = \mathcal{L}\{\theta(t)\}$ and $W(s) = \mathcal{L}\{\omega(t)\}$.
+
+For position control (assuming aligned heading):
+\begin{equation}
+\frac{X(s)}{V(s)} = \frac{\cos\theta_0}{s}
+\end{equation}
+
+\subsection{PID Controller Design}
+
+For the heading control loop with transfer function $G(s) = \frac{1}{s}$, a PD controller suffices:
+\begin{equation}
+C(s) = K_p + K_d s = K_p \frac{1 + T_d s}{1}
+\end{equation}
+
+The closed-loop transfer function:
+\begin{equation}
+T(s) = \frac{C(s)G(s)}{1 + C(s)G(s)} = \frac{K_p + K_d s}{s + K_p + K_d s} = \frac{K_d s + K_p}{(1+K_d)s + K_p}
+\end{equation}
+
+For asymptotic stability: $K_p > 0$, $K_d \geq 0$.
+
+\subsection{Complete PID Control Law}
+
+The discrete PID controller output:
+\begin{equation}
+u[k] = K_p e[k] + K_i \sum_{j=0}^{k} e[j] \Delta t + K_d \frac{e[k] - e[k-1]}{\Delta t}
+\end{equation}
+
+With anti-windup (clamping):
+\begin{equation}
+I[k] = \text{clamp}\left(I[k-1] + e[k] \Delta t, -I_{\max}, I_{\max}\right)
+\end{equation}
+
+\section{3D Rigid Body Extension}
+
+For a ground robot on uneven terrain, the full 6-DOF pose is:
+\begin{equation}
+\mathbf{T} \in SE(3) = \begin{bmatrix} \mathbf{R} & \mathbf{p} \\ \mathbf{0}^T & 1 \end{bmatrix}
+\end{equation}
+
+where $\mathbf{R} \in SO(3)$ is the rotation matrix (roll, pitch, yaw) and $\mathbf{p} = [x, y, z]^T$.
+
+The angular velocity in body frame relates to Euler angle rates via:
+\begin{equation}
+\begin{bmatrix} \omega_x \\ \omega_y \\ \omega_z \end{bmatrix} = \begin{bmatrix} 1 & 0 & -\sin\phi \\ 0 & \cos\phi & \sin\phi\cos\theta \\ 0 & -\sin\phi & \cos\phi\cos\theta \end{bmatrix} \begin{bmatrix} \dot{\phi} \\ \dot{\theta} \\ \dot{\psi} \end{bmatrix}
+\end{equation}
+
+\end{document}
