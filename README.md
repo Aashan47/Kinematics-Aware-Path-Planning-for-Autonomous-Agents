@@ -170,5 +170,5 @@ max_recovery_attempts: 3
 
 ## Author
 
-MSc AI & Robotics Applicant
-Sapienza University of Rome, 2024
+Aashan Javed
+
